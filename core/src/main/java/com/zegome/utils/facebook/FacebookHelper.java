@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
@@ -19,6 +20,7 @@ import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.share.ShareApi;
 import com.facebook.share.Sharer.Result;
+import com.facebook.share.model.ShareHashtag;
 import com.facebook.share.model.ShareLinkContent;
 import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
@@ -30,13 +32,6 @@ import java.util.List;
 
 public class FacebookHelper implements IFacebook {
     private static final String PERMISSION = "publish_actions";
-
-    public static final String SHARE_BUNDLE_NAME = "name";
-    public static final String SHARE_BUNDLE_TITLE = "title";
-    public static final String SHARE_BUNDLE_CAPTION = "caption";
-    public static final String SHARE_BUNDLE_URL_CONTENT = "url_content";
-    public static final String SHARE_BUNDLE_URL_IMAGE = "url_image";
-    public static final String SHARE_BUNDLE_DESCRIPTION = "description";
 
     public interface ProfileTrackerCallback {
         void onCurrentProfileChanged(Profile older, Profile newer);
@@ -140,6 +135,18 @@ public class FacebookHelper implements IFacebook {
     //================================================================//
     // Getter & Setter
     //================================================================//
+
+
+    @Override
+    public boolean canShareLink() {
+        return canShareLink;
+    }
+
+    @Override
+    public boolean canSharePhoto() {
+        return canSharePhoto;
+    }
+
     public void setProfileTrackerCallback(final ProfileTrackerCallback callback) {
         mProfileTrackerCallback = callback;
     }
@@ -150,34 +157,37 @@ public class FacebookHelper implements IFacebook {
         mLoginManager.logInWithPublishPermissions(mActivity, Arrays.asList(PERMISSION));
     }
 
-    private void buildShareLink(final Bundle params, final FacebookCallback<Result> taskCallback) {
-        Profile profile = Profile.getCurrentProfile();
+    private void buildShareLink(final String url, final String quote, final String hashtag, final FacebookCallback<Result> taskCallback) {
         ShareLinkContent linkContent = new ShareLinkContent.Builder()
-//				.setImageUrl(Uri.parse(params.getString(SHARE_BUNDLE_URL_IMAGE)))
-                .setContentTitle(params.getString(SHARE_BUNDLE_TITLE))
-                .setContentDescription(params.getString(SHARE_BUNDLE_DESCRIPTION))
-                .setContentUrl(Uri.parse(params.getString(SHARE_BUNDLE_URL_CONTENT)))
+                .setContentUrl(Uri.parse(url))
+                .setQuote(quote)
+                .setShareHashtag(new ShareHashtag.Builder()
+                        .setHashtag(hashtag.startsWith("#") ? hashtag : ("#" + hashtag))
+                        .build())
                 .build();
 
         final ShareDialog shareDialog = new ShareDialog(mActivity);
         shareDialog.registerCallback(mCallbackManager, taskCallback);
         if (canShareLink) {
             shareDialog.show(linkContent);
-        } else if (profile != null && hasPermissions(Arrays.asList(PERMISSION))) {
-            ShareApi.share(linkContent, taskCallback);
+        } else {
+            Profile profile = Profile.getCurrentProfile();
+            if (profile != null && hasPermissions(Arrays.asList(PERMISSION))) {
+                ShareApi.share(linkContent, taskCallback);
+            }
         }
     }
 
     @Override
-    public void newFeed(final Bundle params, final FacebookCallback<Result> taskCallback) {
+    public void newFeed(final String url, final String quote, final String hashtag, final FacebookCallback<Result> taskCallback) {
         if (isLoggedIn()) {
-            buildShareLink(params, taskCallback);
+            buildShareLink(url, quote, hashtag, taskCallback);
         } else {
             mLoginManager.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
 
                 @Override
                 public void onSuccess(LoginResult result) {
-                    buildShareLink(params, taskCallback);
+                    buildShareLink(url, quote, hashtag, taskCallback);
                 }
 
                 @Override
@@ -194,10 +204,10 @@ public class FacebookHelper implements IFacebook {
         }
     }
 
-    private void buildSharePhoto(final Bundle params, final Bitmap bitmap, final FacebookCallback<Result> taskCallback) {
+    private void buildSharePhoto(final String caption, final Bitmap bitmap, final FacebookCallback<Result> taskCallback) {
         final SharePhoto sharePhoto = new SharePhoto.Builder()
                 .setBitmap(bitmap)
-                .setCaption(params == null ? "Share Photo" : params.getString(SHARE_BUNDLE_CAPTION))
+                .setCaption(TextUtils.isEmpty(caption) ? "Share Photo" : caption)
                 .build();
         final ArrayList<SharePhoto> photos = new ArrayList<SharePhoto>();
         photos.add(sharePhoto);
@@ -212,22 +222,20 @@ public class FacebookHelper implements IFacebook {
         } else if (hasPermissions(Arrays.asList(PERMISSION))) {
             ShareApi.share(sharePhotoContent, taskCallback);
         } else {
-            Toast.makeText(mActivity, "Can't share photo!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mActivity, "Không thể chia sẻ ảnh!", Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
-    public void postPhoto(final Bundle params, final Bitmap bitmap, final FacebookCallback<Result> taskCallback) {
+    public void postPhoto(final String caption, final Bitmap bitmap, final FacebookCallback<Result> taskCallback) {
         if (isLoggedIn()) {
-            buildSharePhoto(params, bitmap, taskCallback);
+            buildSharePhoto(caption, bitmap, taskCallback);
         } else {
             mLoginManager.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
 
                 @Override
                 public void onSuccess(LoginResult result) {
-//					if (canShareLink) {
-                    buildSharePhoto(params, bitmap, taskCallback);
-//					}
+                    buildSharePhoto(caption, bitmap, taskCallback);
                 }
 
                 @Override

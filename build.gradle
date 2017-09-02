@@ -6,7 +6,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.3'
+        classpath 'com.android.tools.build:gradle:2.3.3'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -25,15 +25,12 @@ allprojects {
     }
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
-}
 
 ext {
-    PUBLISH_VERSION = '0.0.1'
-    PUBLISH_VERSION_CODE = 1
-    SUPPORT_LIBRARY_VERSION = '25.1.0'
-    BUILD_TOOLS = "25.0.1"
+    PUBLISH_VERSION = '0.0.2'
+    PUBLISH_VERSION_CODE = 2
+    SUPPORT_LIBRARY_VERSION = '25.3.1'
+    BUILD_TOOLS = "25.0.3"
     TARGET_SDK = 25
     MIN_SDK = 15
 }

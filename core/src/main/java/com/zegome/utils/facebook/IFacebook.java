@@ -16,12 +16,15 @@ public interface IFacebook {
 	void onResume();
 	void onDestroy();
 	void onActivityResult(int requestCode, int resultCode, Intent data);
-	
+
+	boolean canShareLink();
+	boolean canSharePhoto();
+
     boolean isLoggedIn();
     void logIn(final FacebookCallback<LoginResult> taskCallback);
     boolean hasPermissions(List<String> permissions);
-	void newFeed(final Bundle params, final FacebookCallback<Sharer.Result> taskCallback);
-	void postPhoto(final Bundle params, final Bitmap bitmap, final FacebookCallback<Sharer.Result> taskCallback);
+	void newFeed(final String url, final String quote, final String hashtag, final FacebookCallback<Sharer.Result> taskCallback);
+	void postPhoto(final String  caption, final Bitmap bitmap, final FacebookCallback<Sharer.Result> taskCallback);
 	void shareMessenger(final String content);
     void logOut();
 }
