@@ -59,8 +59,7 @@ public class FacebookHelper implements IFacebook {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         //code is inside method
-        FacebookSdk.sdkInitialize(mActivity.getApplicationContext());
-        AppEventsLogger.activateApp(mActivity);
+        AppEventsLogger.activateApp(mActivity.getApplication());
 
         mCallbackManager = CallbackManager.Factory.create();
         mLoginManager = LoginManager.getInstance();
@@ -85,24 +84,23 @@ public class FacebookHelper implements IFacebook {
     public void onDestroy() {
         profileTracker.stopTracking();
     }
-
-
-    @Override
-    public void onPause() {
-        // Call the 'deactivateApp' method to log an app event for use in analytics and advertising
-        // reporting.  Do so in the onPause methods of the primary Activities that an app may be
-        // launched into.
-        AppEventsLogger.deactivateApp(mActivity);
-    }
-
-    @Override
-    public void onResume() {
-        // Call the 'activateApp' method to log an app event for use in analytics and advertising
-        // reporting.  Do so in the onResume methods of the primary Activities that an app may be
-        // launched into.
-        AppEventsLogger.activateApp(mActivity);
-
-    }
+//
+//    @Override
+//    public void onPause() {
+//        // Call the 'deactivateApp' method to log an app event for use in analytics and advertising
+//        // reporting.  Do so in the onPause methods of the primary Activities that an app may be
+//        // launched into.
+//        AppEventsLogger.deactivateApp(mActivity);
+//    }
+//
+//    @Override
+//    public void onResume() {
+//        // Call the 'activateApp' method to log an app event for use in analytics and advertising
+//        // reporting.  Do so in the onResume methods of the primary Activities that an app may be
+//        // launched into.
+//        AppEventsLogger.activateApp(mActivity);
+//
+//    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -252,8 +250,8 @@ public class FacebookHelper implements IFacebook {
         }
     }
 
-    @Override
-    public void shareMessenger(String content) {
-
-    }
+//    @Override
+//    public void shareMessenger(String content) {
+//
+//    }
 }

@@ -12,8 +12,8 @@ import java.util.List;
 
 public interface IFacebook {
 	void onCreate(Bundle savedInstanceState);
-	void onPause();
-	void onResume();
+//	void onPause();
+//	void onResume();
 	void onDestroy();
 	void onActivityResult(int requestCode, int resultCode, Intent data);
 
@@ -25,6 +25,6 @@ public interface IFacebook {
     boolean hasPermissions(List<String> permissions);
 	void newFeed(final String url, final String quote, final String hashtag, final FacebookCallback<Sharer.Result> taskCallback);
 	void postPhoto(final String  caption, final Bitmap bitmap, final FacebookCallback<Sharer.Result> taskCallback);
-	void shareMessenger(final String content);
+//	void shareMessenger(final String content);
     void logOut();
 }
