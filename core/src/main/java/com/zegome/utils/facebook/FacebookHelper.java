@@ -160,7 +160,7 @@ public class FacebookHelper implements IFacebook {
                 .setContentUrl(Uri.parse(url))
                 .setQuote(quote)
                 .setShareHashtag(new ShareHashtag.Builder()
-                        .setHashtag(hashtag.startsWith("#") ? hashtag : ("#" + hashtag))
+                        .setHashtag(hashtag.trim().startsWith("#") ? hashtag.trim() : ("#" + hashtag.trim()))
                         .build())
                 .build();
 
@@ -175,9 +175,12 @@ public class FacebookHelper implements IFacebook {
             }
         }
     }
-
     @Override
     public void newFeed(final String url, final String quote, final String hashtag, final FacebookCallback<Result> taskCallback) {
+        newFeed(ShareDialog.Mode.AUTOMATIC, url, quote, hashtag, taskCallback);
+    }
+        @Override
+    public void newFeed(final ShareDialog.Mode mode, final String url, final String quote, final String hashtag, final FacebookCallback<Result> taskCallback) {
         if (isLoggedIn()) {
             buildShareLink(url, quote, hashtag, taskCallback);
         } else {
@@ -202,10 +205,11 @@ public class FacebookHelper implements IFacebook {
         }
     }
 
-    private void buildSharePhoto(final String caption, final Bitmap bitmap, final FacebookCallback<Result> taskCallback) {
+    private void buildSharePhoto(final boolean isUserGenerated, final String caption, final Bitmap bitmap, final FacebookCallback<Result> taskCallback) {
         final SharePhoto sharePhoto = new SharePhoto.Builder()
                 .setBitmap(bitmap)
                 .setCaption(TextUtils.isEmpty(caption) ? "Share Photo" : caption)
+                .setUserGenerated(isUserGenerated)
                 .build();
         final ArrayList<SharePhoto> photos = new ArrayList<SharePhoto>();
         photos.add(sharePhoto);
@@ -223,17 +227,20 @@ public class FacebookHelper implements IFacebook {
             Toast.makeText(mActivity, "Không thể chia sẻ ảnh!", Toast.LENGTH_SHORT).show();
         }
     }
-
     @Override
     public void postPhoto(final String caption, final Bitmap bitmap, final FacebookCallback<Result> taskCallback) {
+        postPhoto(true, caption, bitmap, taskCallback);
+    }
+        @Override
+    public void postPhoto(final boolean isUserGenerated, final String caption, final Bitmap bitmap, final FacebookCallback<Result> taskCallback) {
         if (isLoggedIn()) {
-            buildSharePhoto(caption, bitmap, taskCallback);
+            buildSharePhoto(isUserGenerated, caption, bitmap, taskCallback);
         } else {
             mLoginManager.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
 
                 @Override
                 public void onSuccess(LoginResult result) {
-                    buildSharePhoto(caption, bitmap, taskCallback);
+                    buildSharePhoto(isUserGenerated, caption, bitmap, taskCallback);
                 }
 
                 @Override
