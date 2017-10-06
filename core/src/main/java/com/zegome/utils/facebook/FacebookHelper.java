@@ -1,6 +1,7 @@
 package com.zegome.utils.facebook;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -12,9 +13,7 @@ import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
-import com.facebook.FacebookSdk;
 import com.facebook.Profile;
-import com.facebook.ProfileTracker;
 import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
@@ -30,27 +29,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class FacebookHelper implements IFacebook {
+public final class FacebookHelper implements IFacebook {
     private static final String PERMISSION = "publish_actions";
 
-    public interface ProfileTrackerCallback {
-        void onCurrentProfileChanged(Profile older, Profile newer);
-    }
-
-    //global refs
-    //callbacks
-//	private TaskCallback mLoginCallback;
     private CallbackManager mCallbackManager;
-    //    private FacebookCallback<LoginResult> mFacebookCallback;
-//    private List<String> mPermissions = Arrays.asList("email");
-    private ProfileTracker profileTracker;
+
     private LoginManager mLoginManager;
     private Activity mActivity;
 
-    private ProfileTrackerCallback mProfileTrackerCallback = null;
-
     private boolean canShareLink = false;
     private boolean canSharePhoto = false;
+
+    public static void activateApp(final Application application) {
+        AppEventsLogger.activateApp(application);
+    }
+
+    public static void activateApp(final Activity activity) {
+        AppEventsLogger.activateApp(activity.getApplication());
+    }
 
     public FacebookHelper(final Activity ac) {
         mActivity = ac;
@@ -59,7 +55,6 @@ public class FacebookHelper implements IFacebook {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         //code is inside method
-        AppEventsLogger.activateApp(mActivity.getApplication());
 
         mCallbackManager = CallbackManager.Factory.create();
         mLoginManager = LoginManager.getInstance();
@@ -70,37 +65,7 @@ public class FacebookHelper implements IFacebook {
         // Can we present the share dialog for photos?
         canSharePhoto = ShareDialog.canShow(SharePhotoContent.class);
 
-        profileTracker = new ProfileTracker() {
-            @Override
-            protected void onCurrentProfileChanged(Profile oldProfile, Profile currentProfile) {
-                if (mProfileTrackerCallback != null)
-                    mProfileTrackerCallback.onCurrentProfileChanged(oldProfile, currentProfile);
-            }
-        };
-
     }
-
-    @Override
-    public void onDestroy() {
-        profileTracker.stopTracking();
-    }
-//
-//    @Override
-//    public void onPause() {
-//        // Call the 'deactivateApp' method to log an app event for use in analytics and advertising
-//        // reporting.  Do so in the onPause methods of the primary Activities that an app may be
-//        // launched into.
-//        AppEventsLogger.deactivateApp(mActivity);
-//    }
-//
-//    @Override
-//    public void onResume() {
-//        // Call the 'activateApp' method to log an app event for use in analytics and advertising
-//        // reporting.  Do so in the onResume methods of the primary Activities that an app may be
-//        // launched into.
-//        AppEventsLogger.activateApp(mActivity);
-//
-//    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -143,10 +108,6 @@ public class FacebookHelper implements IFacebook {
     @Override
     public boolean canSharePhoto() {
         return canSharePhoto;
-    }
-
-    public void setProfileTrackerCallback(final ProfileTrackerCallback callback) {
-        mProfileTrackerCallback = callback;
     }
 
     @Override
@@ -257,8 +218,4 @@ public class FacebookHelper implements IFacebook {
         }
     }
 
-//    @Override
-//    public void shareMessenger(String content) {
-//
-//    }
 }

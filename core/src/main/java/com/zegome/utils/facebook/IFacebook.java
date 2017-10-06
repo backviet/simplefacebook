@@ -13,9 +13,6 @@ import java.util.List;
 
 public interface IFacebook {
 	void onCreate(Bundle savedInstanceState);
-//	void onPause();
-//	void onResume();
-	void onDestroy();
 	void onActivityResult(int requestCode, int resultCode, Intent data);
 
 	boolean canShareLink();
@@ -29,6 +26,5 @@ public interface IFacebook {
 	void postPhoto(final String  caption, final Bitmap bitmap, final FacebookCallback<Sharer.Result> taskCallback);
 	void postPhoto(final boolean isUserGenerated, final String  caption, final Bitmap bitmap, final FacebookCallback<Sharer.Result> taskCallback);
 
-	//	void shareMessenger(final String content);
     void logOut();
 }
