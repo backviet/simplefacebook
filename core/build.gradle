@@ -49,21 +49,19 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            libraryVariants.all { variant ->
-                variant.outputs.each { output ->
-                    def outputFile = output.outputFile
-                    if (outputFile != null && outputFile.name.endsWith('.aar')) {
-                        def fileName = "${archivesBaseName}-${version}.aar"
-                        output.outputFile = new File(outputFile.parent, fileName)
-                    }
+
+            android.libraryVariants.all { variant ->
+                variant.outputs.all {
+                    outputFileName = "${archivesBaseName}-${PUBLISH_VERSION}.aar"
                 }
             }
+
         }
     }
 }
 
 dependencies {
-    compile 'com.facebook.android:facebook-android-sdk:4.+'
+    implementation 'com.facebook.android:facebook-android-sdk:4.+'
 }
 
 apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
