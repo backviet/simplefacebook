@@ -10,7 +10,7 @@ android {
         versionCode 1
         versionName "1.0"
 
-        applicationId "com.zegome.utils.facebook"
+        applicationId "com.zegome.test"
     }
     buildTypes {
         release {
@@ -21,6 +21,8 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "com.android.support:appcompat-v7:$SUPPORT_LIBRARY_VERSION"
+    implementation "com.facebook.android:facebook-android-sdk:$FACEBOOK_SDK"
+    implementation project(':core')
 }

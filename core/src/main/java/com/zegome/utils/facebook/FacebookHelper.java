@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.widget.Toast;
 
@@ -30,7 +31,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public final class FacebookHelper implements IFacebook {
-    private static final String PERMISSION = "publish_actions";
+    private static final String PERMISSION_PUBLIC_PROFILE = "public_profile";
+    private static final String PERMISSION_EMAIL = "email";
 
     private CallbackManager mCallbackManager;
 
@@ -90,15 +92,13 @@ public final class FacebookHelper implements IFacebook {
         return true;
     }
 
-    @Override
-    public void logOut() {
-        mLoginManager.logOut();
-    }
-
     //================================================================//
     // Getter & Setter
     //================================================================//
-
+    @NonNull
+    public List<String> getDefaultPermission() {
+        return Arrays.asList(PERMISSION_PUBLIC_PROFILE, PERMISSION_EMAIL);
+    }
 
     @Override
     public boolean canShareLink() {
@@ -113,7 +113,7 @@ public final class FacebookHelper implements IFacebook {
     @Override
     public void logIn(FacebookCallback<LoginResult> taskCallback) {
         mLoginManager.registerCallback(mCallbackManager, taskCallback);
-        mLoginManager.logInWithPublishPermissions(mActivity, Arrays.asList(PERMISSION));
+        mLoginManager.logInWithReadPermissions(mActivity, getDefaultPermission());
     }
 
     private void buildShareLink(final String url, final String quote, final String hashtag, final FacebookCallback<Result> taskCallback) {
@@ -131,11 +131,17 @@ public final class FacebookHelper implements IFacebook {
             shareDialog.show(linkContent);
         } else {
             Profile profile = Profile.getCurrentProfile();
-            if (profile != null && hasPermissions(Arrays.asList(PERMISSION))) {
+            if (profile != null && hasPermissions(getDefaultPermission())) {
                 ShareApi.share(linkContent, taskCallback);
             }
         }
     }
+
+    @Override
+    public void logOut() {
+        mLoginManager.logOut();
+    }
+
     @Override
     public void newFeed(final String url, final String quote, final String hashtag, final FacebookCallback<Result> taskCallback) {
         newFeed(ShareDialog.Mode.AUTOMATIC, url, quote, hashtag, taskCallback);
@@ -162,7 +168,7 @@ public final class FacebookHelper implements IFacebook {
                     taskCallback.onError(error);
                 }
             });
-            mLoginManager.logInWithPublishPermissions(mActivity, Arrays.asList(PERMISSION));
+            mLoginManager.logInWithPublishPermissions(mActivity, getDefaultPermission());
         }
     }
 
@@ -182,7 +188,7 @@ public final class FacebookHelper implements IFacebook {
         shareDialog.registerCallback(mCallbackManager, taskCallback);
         if (canSharePhoto) {
             shareDialog.show(sharePhotoContent);
-        } else if (hasPermissions(Arrays.asList(PERMISSION))) {
+        } else if (hasPermissions(getDefaultPermission())) {
             ShareApi.share(sharePhotoContent, taskCallback);
         } else {
             Toast.makeText(mActivity, "Không thể chia sẻ ảnh!", Toast.LENGTH_SHORT).show();
@@ -214,7 +220,7 @@ public final class FacebookHelper implements IFacebook {
                     taskCallback.onError(error);
                 }
             });
-            mLoginManager.logInWithPublishPermissions(mActivity, Arrays.asList(PERMISSION));
+            mLoginManager.logInWithPublishPermissions(mActivity, getDefaultPermission());
         }
     }
 

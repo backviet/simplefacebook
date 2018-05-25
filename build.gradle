@@ -7,7 +7,7 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'com.android.tools.build:gradle:3.1.2'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -29,10 +29,11 @@ allprojects {
 
 
 ext {
-    PUBLISH_VERSION = '1.0.2'
-    PUBLISH_VERSION_CODE = 12
-    SUPPORT_LIBRARY_VERSION = '27.+'
-    BUILD_TOOLS = "27.0.2"
-    TARGET_SDK = 27
-    MIN_SDK = 15
+    FACEBOOK_SDK = '[4,5)'
+    PUBLISH_VERSION = '1.1.0'
+    PUBLISH_VERSION_CODE = 13
+    SUPPORT_LIBRARY_VERSION = '27.1.1'
+    BUILD_TOOLS = "27.0.3"
+    TARGET_SDK = 26
+    MIN_SDK = 16
 }
