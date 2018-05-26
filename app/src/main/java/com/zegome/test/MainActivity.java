@@ -6,13 +6,11 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.DisplayMetrics;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.facebook.FacebookCallback;
@@ -27,7 +25,7 @@ public class MainActivity extends Activity {
 
     private FacebookHelper mFacebook = null;
 
-    private View mBtFacebookLogin;
+    private Button mBtFacebookLogin;
     private Bitmap mSharePhotoBm = null;
 
     @Override
@@ -39,7 +37,7 @@ public class MainActivity extends Activity {
         mFacebook.onCreate(savedInstanceState);
 
         mBtFacebookLogin = findViewById(R.id.main_bt_facebook_login);
-        mBtFacebookLogin.setEnabled(!mFacebook.isLoggedIn());
+        mBtFacebookLogin.setText(mFacebook.isLoggedIn() ? "Logout" : "Login");
 
     }
 
@@ -102,58 +100,58 @@ public class MainActivity extends Activity {
     }
 
     public void onFacebookLogin(View v) {
-        mFacebook.logIn(new FacebookCallback<LoginResult>() {
-            @Override
-            public void onSuccess(LoginResult loginResult) {
-                mBtFacebookLogin.setEnabled(false);
-                showToast("Login success");
-            }
-
-            @Override
-            public void onCancel() {
-                showToast("Cancel login");
-            }
-
-            @Override
-            public void onError(FacebookException error) {
-                showToast("Login error: " + error.getMessage());
-            }
-        });
-    }
-
-    public void onFacebookSharePhoto(View v) {
-        if (mFacebook.canSharePhoto()) {
-            releaseShareBitmap();
-            mSharePhotoBm = getImage(this, findViewById(R.id.main_root));
-
-            mFacebook.postPhoto("SimpleFacebook post photo test", mSharePhotoBm, new FacebookCallback<Sharer.Result>() {
-
+        if (mFacebook.isLoggedIn()) {
+            mFacebook.logOut();
+        } else {
+            mFacebook.logIn(new FacebookCallback<LoginResult>() {
                 @Override
-                public void onSuccess(Sharer.Result result) {
-                    releaseShareBitmap();
-                    showToast("Posted on your timeline");
+                public void onSuccess(LoginResult loginResult) {
+                    mBtFacebookLogin.setEnabled(false);
+                    showToast("Login success");
                 }
 
                 @Override
                 public void onCancel() {
-                    releaseShareBitmap();
-                    showToast("Canceld posting photo");
+                    showToast("Cancel login");
                 }
 
                 @Override
-                public void onError(FacebookException ex) {
-                    releaseShareBitmap();
-                    showToastLong("Posts photo error " + (ex == null ? "" : ex.getMessage()));
+                public void onError(FacebookException error) {
+                    showToast("Login error: " + error.getMessage());
                 }
             });
-        } else {
-            showToast("Can not post photo");
         }
     }
 
-    public void onFacebookNewFeed(View v) {
+    public void onFacebookSharePhoto(View v) {
+        releaseShareBitmap();
+        mSharePhotoBm = getImage(this, findViewById(R.id.main_root));
+
+        mFacebook.sharePhoto("SimpleFacebook post photo test", mSharePhotoBm, new FacebookCallback<Sharer.Result>() {
+
+            @Override
+            public void onSuccess(Sharer.Result result) {
+                releaseShareBitmap();
+                showToast("Posted on your timeline");
+            }
+
+            @Override
+            public void onCancel() {
+                releaseShareBitmap();
+                showToast("Canceld posting photo");
+            }
+
+            @Override
+            public void onError(FacebookException ex) {
+                releaseShareBitmap();
+                showToastLong("Posts photo error " + (ex == null ? "" : ex.getMessage()));
+            }
+        });
+    }
+
+    public void onFacebookShareLink(View v) {
         if (mFacebook.canShareLink()) {
-            mFacebook.newFeed("https://google.com.vn", "SimpleFacebook test", "#simple_facebook", new FacebookCallback<Sharer.Result>() {
+            mFacebook.shareLink("https://google.com", "SimpleFacebook test", "#simple_facebook", new FacebookCallback<Sharer.Result>() {
                 @Override
                 public void onSuccess(Sharer.Result result) {
                     showToastLong("ShareLink success");

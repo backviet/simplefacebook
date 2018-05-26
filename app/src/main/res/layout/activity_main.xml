@@ -34,8 +34,7 @@
         android:id="@+id/main_bt_facebook_newfeed"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="NEWFEED"
-        android:onClick="onFacebookNewFeed"/>
-
+        android:text="SHARE LINK"
+        android:onClick="onFacebookShareLink"/>
 
 </LinearLayout>

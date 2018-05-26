@@ -1,7 +1,6 @@
 package com.zegome.utils.facebook;
 
 import android.app.Activity;
-import android.app.Application;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -15,7 +14,6 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.Profile;
-import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.share.ShareApi;
@@ -26,29 +24,14 @@ import com.facebook.share.model.SharePhoto;
 import com.facebook.share.model.SharePhotoContent;
 import com.facebook.share.widget.ShareDialog;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public final class FacebookHelper implements IFacebook {
-    private static final String PERMISSION_PUBLIC_PROFILE = "public_profile";
-    private static final String PERMISSION_EMAIL = "email";
+    private static final String PERMISSION = "publish_actions";
 
     private CallbackManager mCallbackManager;
-
-    private LoginManager mLoginManager;
     private Activity mActivity;
-
-    private boolean canShareLink = false;
-    private boolean canSharePhoto = false;
-
-    public static void activateApp(final Application application) {
-        AppEventsLogger.activateApp(application);
-    }
-
-    public static void activateApp(final Activity activity) {
-        AppEventsLogger.activateApp(activity.getApplication());
-    }
 
     public FacebookHelper(final Activity ac) {
         mActivity = ac;
@@ -56,17 +39,7 @@ public final class FacebookHelper implements IFacebook {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        //code is inside method
-
         mCallbackManager = CallbackManager.Factory.create();
-        mLoginManager = LoginManager.getInstance();
-
-        // Can we present the share dialog for regular links?
-        canShareLink = ShareDialog.canShow(ShareLinkContent.class);
-
-        // Can we present the share dialog for photos?
-        canSharePhoto = ShareDialog.canShow(SharePhotoContent.class);
-
     }
 
     @Override
@@ -95,25 +68,43 @@ public final class FacebookHelper implements IFacebook {
     //================================================================//
     // Getter & Setter
     //================================================================//
+
     @NonNull
-    public List<String> getDefaultPermission() {
-        return Arrays.asList(PERMISSION_PUBLIC_PROFILE, PERMISSION_EMAIL);
+    public List<String> getPublishPermission() {
+        return Arrays.asList(PERMISSION);
     }
 
     @Override
     public boolean canShareLink() {
-        return canShareLink;
+        return ShareDialog.canShow(ShareLinkContent.class);
     }
 
     @Override
     public boolean canSharePhoto() {
-        return canSharePhoto;
+        return ShareDialog.canShow(SharePhotoContent.class);
     }
 
     @Override
     public void logIn(FacebookCallback<LoginResult> taskCallback) {
-        mLoginManager.registerCallback(mCallbackManager, taskCallback);
-        mLoginManager.logInWithReadPermissions(mActivity, getDefaultPermission());
+        try {
+            createCallbackLogin();
+            LoginManager.getInstance().registerCallback(mCallbackManager, taskCallback);
+            LoginManager.getInstance()
+                    .logInWithPublishPermissions(mActivity, Arrays.asList(PERMISSION));
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (taskCallback != null) {
+                taskCallback.onError(new FacebookException(e.getMessage()));
+            }
+        }
+    }
+
+    private void createCallbackLogin() {
+        if (mCallbackManager != null) {
+            LoginManager.getInstance().unregisterCallback(mCallbackManager);
+            mCallbackManager = null;
+        }
+        mCallbackManager = CallbackManager.Factory.create();
     }
 
     private void buildShareLink(final String url, final String quote, final String hashtag, final FacebookCallback<Result> taskCallback) {
@@ -127,11 +118,11 @@ public final class FacebookHelper implements IFacebook {
 
         final ShareDialog shareDialog = new ShareDialog(mActivity);
         shareDialog.registerCallback(mCallbackManager, taskCallback);
-        if (canShareLink) {
+        if (canShareLink()) {
             shareDialog.show(linkContent);
         } else {
             Profile profile = Profile.getCurrentProfile();
-            if (profile != null && hasPermissions(getDefaultPermission())) {
+            if (profile != null && hasPermissions(getPublishPermission())) {
                 ShareApi.share(linkContent, taskCallback);
             }
         }
@@ -139,36 +130,44 @@ public final class FacebookHelper implements IFacebook {
 
     @Override
     public void logOut() {
-        mLoginManager.logOut();
+        LoginManager.getInstance().logOut();
     }
 
     @Override
-    public void newFeed(final String url, final String quote, final String hashtag, final FacebookCallback<Result> taskCallback) {
-        newFeed(ShareDialog.Mode.AUTOMATIC, url, quote, hashtag, taskCallback);
+    public void shareLink(final String url, final String quote, final String hashtag, final FacebookCallback<Result> taskCallback) {
+        shareLink(ShareDialog.Mode.AUTOMATIC, url, quote, hashtag, taskCallback);
     }
-        @Override
-    public void newFeed(final ShareDialog.Mode mode, final String url, final String quote, final String hashtag, final FacebookCallback<Result> taskCallback) {
-        if (isLoggedIn()) {
-            buildShareLink(url, quote, hashtag, taskCallback);
-        } else {
-            mLoginManager.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
 
-                @Override
-                public void onSuccess(LoginResult result) {
-                    buildShareLink(url, quote, hashtag, taskCallback);
-                }
+    @Override
+    public void shareLink(final ShareDialog.Mode mode, final String url, final String quote, final String hashtag, final FacebookCallback<Result> taskCallback) {
+        try {
+            if (isLoggedIn()) {
+                buildShareLink(url, quote, hashtag, taskCallback);
+            } else {
+                LoginManager.getInstance().registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
 
-                @Override
-                public void onCancel() {
-                    taskCallback.onCancel();
-                }
+                    @Override
+                    public void onSuccess(LoginResult result) {
+                        buildShareLink(url, quote, hashtag, taskCallback);
+                    }
 
-                @Override
-                public void onError(FacebookException error) {
-                    taskCallback.onError(error);
-                }
-            });
-            mLoginManager.logInWithPublishPermissions(mActivity, getDefaultPermission());
+                    @Override
+                    public void onCancel() {
+                        taskCallback.onCancel();
+                    }
+
+                    @Override
+                    public void onError(FacebookException error) {
+                        taskCallback.onError(error);
+                    }
+                });
+                LoginManager.getInstance().logInWithReadPermissions(mActivity, getPublishPermission());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (taskCallback != null) {
+                taskCallback.onError(new FacebookException(e.getMessage()));
+            }
         }
     }
 
@@ -178,49 +177,58 @@ public final class FacebookHelper implements IFacebook {
                 .setCaption(TextUtils.isEmpty(caption) ? "Share Photo" : caption)
                 .setUserGenerated(isUserGenerated)
                 .build();
-        final ArrayList<SharePhoto> photos = new ArrayList<SharePhoto>();
-        photos.add(sharePhoto);
 
         final SharePhotoContent sharePhotoContent = new SharePhotoContent.Builder()
-                .setPhotos(photos)
+                .addPhoto(sharePhoto)
                 .build();
         final ShareDialog shareDialog = new ShareDialog(mActivity);
         shareDialog.registerCallback(mCallbackManager, taskCallback);
-        if (canSharePhoto) {
+
+        if (canSharePhoto()) {
             shareDialog.show(sharePhotoContent);
-        } else if (hasPermissions(getDefaultPermission())) {
+        } else if (hasPermissions(getPublishPermission())) {
             ShareApi.share(sharePhotoContent, taskCallback);
         } else {
-            Toast.makeText(mActivity, "Không thể chia sẻ ảnh!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mActivity, "Can not share your photo", Toast.LENGTH_SHORT).show();
         }
     }
+
     @Override
-    public void postPhoto(final String caption, final Bitmap bitmap, final FacebookCallback<Result> taskCallback) {
-        postPhoto(true, caption, bitmap, taskCallback);
+    public void sharePhoto(final String caption, final Bitmap bitmap, final FacebookCallback<Result> taskCallback) {
+        sharePhoto(true, caption, bitmap, taskCallback);
     }
-        @Override
-    public void postPhoto(final boolean isUserGenerated, final String caption, final Bitmap bitmap, final FacebookCallback<Result> taskCallback) {
-        if (isLoggedIn()) {
-            buildSharePhoto(isUserGenerated, caption, bitmap, taskCallback);
-        } else {
-            mLoginManager.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
 
-                @Override
-                public void onSuccess(LoginResult result) {
-                    buildSharePhoto(isUserGenerated, caption, bitmap, taskCallback);
-                }
+    @Override
+    public void sharePhoto(final boolean isUserGenerated, final String caption, final Bitmap bitmap, final FacebookCallback<Result> taskCallback) {
+        try {
+            if (isLoggedIn()) {
+                buildSharePhoto(isUserGenerated, caption, bitmap, taskCallback);
+            } else {
+                LoginManager.getInstance().registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
 
-                @Override
-                public void onCancel() {
-                    taskCallback.onCancel();
-                }
+                    @Override
+                    public void onSuccess(LoginResult result) {
+                        buildSharePhoto(isUserGenerated, caption, bitmap, taskCallback);
+                    }
 
-                @Override
-                public void onError(FacebookException error) {
-                    taskCallback.onError(error);
-                }
-            });
-            mLoginManager.logInWithPublishPermissions(mActivity, getDefaultPermission());
+                    @Override
+                    public void onCancel() {
+                        taskCallback.onCancel();
+                    }
+
+                    @Override
+                    public void onError(FacebookException error) {
+                        taskCallback.onError(error);
+                    }
+                });
+                LoginManager.getInstance()
+                        .logInWithPublishPermissions(mActivity, getPublishPermission());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (taskCallback != null) {
+                taskCallback.onError(new FacebookException(e.getMessage()));
+            }
         }
     }
 

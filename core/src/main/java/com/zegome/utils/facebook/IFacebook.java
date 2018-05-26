@@ -21,10 +21,10 @@ public interface IFacebook {
     boolean isLoggedIn();
     void logIn(final FacebookCallback<LoginResult> taskCallback);
     boolean hasPermissions(List<String> permissions);
-	void newFeed(final ShareDialog.Mode mode, final String url, final String quote, final String hashtag, final FacebookCallback<Sharer.Result> taskCallback);
-	void newFeed(final String url, final String quote, final String hashtag, final FacebookCallback<Sharer.Result> taskCallback);
-	void postPhoto(final String  caption, final Bitmap bitmap, final FacebookCallback<Sharer.Result> taskCallback);
-	void postPhoto(final boolean isUserGenerated, final String  caption, final Bitmap bitmap, final FacebookCallback<Sharer.Result> taskCallback);
+	void shareLink(final ShareDialog.Mode mode, final String url, final String quote, final String hashtag, final FacebookCallback<Sharer.Result> taskCallback);
+	void shareLink(final String url, final String quote, final String hashtag, final FacebookCallback<Sharer.Result> taskCallback);
+	void sharePhoto(final String  caption, final Bitmap bitmap, final FacebookCallback<Sharer.Result> taskCallback);
+	void sharePhoto(final boolean isUserGenerated, final String  caption, final Bitmap bitmap, final FacebookCallback<Sharer.Result> taskCallback);
 
     void logOut();
 }

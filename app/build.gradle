@@ -7,8 +7,8 @@ android {
     defaultConfig {
         minSdkVersion MIN_SDK
         targetSdkVersion TARGET_SDK
-        versionCode 1
-        versionName "1.0"
+        versionCode PUBLISH_VERSION_CODE
+        versionName PUBLISH_VERSION
 
         applicationId "com.zegome.test"
     }
@@ -23,6 +23,7 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "com.android.support:appcompat-v7:$SUPPORT_LIBRARY_VERSION"
-    implementation "com.facebook.android:facebook-android-sdk:$FACEBOOK_SDK"
+    implementation "com.facebook.android:facebook-login:$FACEBOOK_SDK"
+    implementation "com.facebook.android:facebook-share:$FACEBOOK_SDK"
     implementation project(':core')
 }

@@ -61,7 +61,8 @@ android {
 }
 
 dependencies {
-    implementation "com.facebook.android:facebook-android-sdk:$FACEBOOK_SDK"
+    implementation "com.facebook.android:facebook-login:$FACEBOOK_SDK"
+    implementation "com.facebook.android:facebook-share:$FACEBOOK_SDK"
 }
 
 apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
